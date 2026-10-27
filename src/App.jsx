@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import Auth from './Auth.jsx';
 import logo from './assets/logo.png';
 
-// Idle timeout limit: 15 minutes in milliseconds
-const INACTIVITY_LIMIT = 15 * 60 * 1000;
+// Idle timeout limit: 15 minutes (change to 10 * 1000 for quick testing)
+const INACTIVITY_LIMIT = 15 * 60 * 1000; 
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -12,6 +12,9 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [viewMode, setViewMode] = useState('user'); // 'user' | 'admin'
   const [activeTab, setActiveTab] = useState('work'); // 'work' | 'expense'
+
+  // Ref to hold current timer ID to prevent stale closures
+  const idleTimerRef = useRef(null);
 
   // Dynamic Projects List
   const [projectList, setProjectList] = useState([]);
@@ -40,43 +43,44 @@ export default function App() {
   const [allLogs, setAllLogs] = useState([]);
   const [allExpenses, setAllExpenses] = useState([]);
 
-  // Handle automatic logout due to inactivity
-  const handleIdleLogout = useCallback(async () => {
-    if (session) {
+  // Direct Logout Execution
+  const forceLogout = useCallback(async () => {
+    try {
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       await supabase.auth.signOut();
+      setSession(null); // Explicitly reset session in state immediately
       alert("You have been automatically logged out due to inactivity.");
-      window.location.reload();
+    } catch (err) {
+      console.error("Error signing out:", err);
     }
-  }, [session]);
+  }, []);
 
-  // Setup Idle Timer Listener
+  // Idle Activity Tracking Effect
   useEffect(() => {
     if (!session) return;
 
-    let timer;
-
     const resetTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(handleIdleLogout, INACTIVITY_LIMIT);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(forceLogout, INACTIVITY_LIMIT);
     };
 
-    // User interaction events to monitor
-    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    // Events to track user activity
+    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll', 'click'];
 
     events.forEach((event) => {
-      window.addEventListener(event, resetTimer);
+      window.addEventListener(event, resetTimer, { passive: true });
     });
 
-    // Initialize timer
+    // Start timer on mount
     resetTimer();
 
     return () => {
-      clearTimeout(timer);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       events.forEach((event) => {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [session, handleIdleLogout]);
+  }, [session, forceLogout]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
