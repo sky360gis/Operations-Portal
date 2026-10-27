@@ -13,7 +13,10 @@ const ALLOWED_EMAILS = [
 const INACTIVITY_LIMIT = 15 * 60 * 1000; 
 
 export default function App() {
-  const [showLandingPage, setShowLandingPage] = useState(true);
+  // Automatically bypass landing page if URL has auth callback hash fragments from Google OAuth
+  const hasAuthHash = window.location.hash.includes('access_token=') || window.location.hash.includes('type=recovery');
+  
+  const [showLandingPage, setShowLandingPage] = useState(!hasAuthHash);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -87,10 +90,12 @@ export default function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setShowLandingPage(false);
       validateAndSetSession(session);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) setShowLandingPage(false);
       validateAndSetSession(session);
     });
 
