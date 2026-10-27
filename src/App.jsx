@@ -4,14 +4,13 @@ import Auth from './Auth.jsx';
 import LandingPage from './LandingPage.jsx';
 import logo from './assets/logo.png';
 
-// Add your allowed employee and admin emails here:
+// Whitelisted Emails
 const ALLOWED_EMAILS = [
-  'sandeep.p1981@gmail.com', // Your admin account
+  'sandeep.p1981@gmail.com',
   'sandeep@sky360.com',
   'admin2@sky360.com',
 ];
 
-// Idle timeout limit: 15 minutes
 const INACTIVITY_LIMIT = 15 * 60 * 1000; 
 
 export default function App() {
@@ -23,37 +22,29 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('work'); // 'work' | 'expense'
   const [unauthorizedEmail, setUnauthorizedEmail] = useState(null);
 
-  // Ref to hold current timer ID to prevent stale closures
   const idleTimerRef = useRef(null);
 
-  // Dynamic Projects List
   const [projectList, setProjectList] = useState([]);
-
-  // Attendance states
   const [attendanceStatus, setAttendanceStatus] = useState('not_checked_in');
   const [attendanceId, setAttendanceId] = useState(null);
   const [checkInTime, setCheckInTime] = useState(null);
   const [checkOutTime, setCheckOutTime] = useState(null);
 
-  // Work log states
   const [project, setProject] = useState('');
   const [task, setTask] = useState('');
   const [hours, setHours] = useState('');
   const [logs, setLogs] = useState([]);
 
-  // Expense states
   const [expProject, setExpProject] = useState('');
   const [expCategory, setExpCategory] = useState('Fuel');
   const [expAmount, setExpAmount] = useState('');
   const [expDesc, setExpDesc] = useState('');
   const [myExpenses, setMyExpenses] = useState([]);
 
-  // Admin Data states
   const [allAttendance, setAllAttendance] = useState([]);
   const [allLogs, setAllLogs] = useState([]);
   const [allExpenses, setAllExpenses] = useState([]);
 
-  // Direct Logout Execution
   const forceLogout = useCallback(async () => {
     try {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
@@ -65,7 +56,6 @@ export default function App() {
     }
   }, []);
 
-  // Idle Activity Tracking Effect
   useEffect(() => {
     if (!session) return;
 
@@ -75,7 +65,6 @@ export default function App() {
     };
 
     const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll', 'click'];
-
     events.forEach((event) => {
       window.addEventListener(event, resetTimer, { passive: true });
     });
@@ -102,12 +91,9 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Check if logged-in user is authorized
   const validateAndSetSession = async (currentSession) => {
     if (currentSession) {
       const userEmail = currentSession.user.email;
-      console.log("Logged-in user email:", userEmail);
-
       if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(userEmail)) {
         await supabase.auth.signOut();
         setSession(null);
@@ -312,7 +298,7 @@ export default function App() {
     return <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>Loading application...</div>;
   }
 
-  // Render Landing Page first when visitor opens the website
+  // Render Landing Page first
   if (showLandingPage) {
     return <LandingPage onGoToPortal={() => setShowLandingPage(false)} />;
   }
@@ -326,19 +312,41 @@ export default function App() {
           <p style={{ color: '#991b1b', fontSize: '14px', marginBottom: '25px', lineHeight: '1.5', fontWeight: '600' }}>
             Unauthorised User, Contact Admin for Sign In
           </p>
-          <button 
-            onClick={() => setUnauthorizedEmail(null)}
-            style={{ width: '100%', padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
-          >
-            Back to Login
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button 
+              onClick={() => setUnauthorizedEmail(null)}
+              style={{ width: '100%', padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
+            >
+              Back to Login
+            </button>
+            <button 
+              onClick={() => {
+                setUnauthorizedEmail(null);
+                setShowLandingPage(true);
+              }}
+              style={{ width: '100%', padding: '10px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+            >
+              ← Back to Main Website
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   if (!session) {
-    return <Auth />;
+    return (
+      <div style={{ position: 'relative' }}>
+        {/* Quick button to return to main website from login page */}
+        <button 
+          onClick={() => setShowLandingPage(true)} 
+          style={{ position: 'absolute', top: '20px', left: '20px', padding: '8px 16px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '13px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+        >
+          ← Back to Main Website
+        </button>
+        <Auth />
+      </div>
+    );
   }
 
   return (
@@ -356,11 +364,13 @@ export default function App() {
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <h2 style={{ margin: 0, color: '#004080', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Operations Portal</h2>
+              
+              {/* Button to go back to main website */}
               <button 
                 onClick={() => setShowLandingPage(true)} 
-                style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#475569', fontWeight: '600', fontSize: '12px' }}
+                style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '12px' }}
               >
-                ← Back to Website
+                ← Back to Main Website
               </button>
             </div>
           </div>
@@ -370,7 +380,7 @@ export default function App() {
               {isAdmin && (
                 <button 
                   onClick={() => setViewMode(viewMode === 'user' ? 'admin' : 'user')} 
-                  style={{ padding: '8px 16px', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', fontWeight: '600', fontSize: '14px', transition: 'background 0.2s' }}
+                  style={{ padding: '8px 16px', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', fontWeight: '600', fontSize: '14px' }}
                 >
                   {viewMode === 'user' ? 'Switch to Admin Panel ⚙️' : 'Switch to My Portal 👤'}
                 </button>
