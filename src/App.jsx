@@ -24,7 +24,6 @@ export default function App() {
 
   const idleTimerRef = useRef(null);
 
-  // Track window size for mobile responsiveness
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -358,45 +357,73 @@ export default function App() {
     <div style={{ minHeight: '100vh', backgroundColor: '#f0f6ff', padding: '20px 10px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', boxSizing: 'border-box' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         
-        {/* Navigation Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', borderTop: '4px solid #0066cc', flexWrap: 'wrap', gap: '15px' }}>
+        {/* Centered & Responsive Navigation Header */}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          marginBottom: '20px', 
+          backgroundColor: '#ffffff', 
+          padding: '20px', 
+          borderRadius: '12px', 
+          boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', 
+          borderTop: '4px solid #0066cc', 
+          gap: '15px',
+          textAlign: isMobile ? 'center' : 'left',
+          boxSizing: 'border-box'
+        }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+          {/* Logo & Portal Title Group */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: isMobile ? 'column' : 'row', 
+            alignItems: 'center', 
+            gap: '12px', 
+            width: isMobile ? '100%' : 'auto' 
+          }}>
             <img 
               src={logo} 
               alt="SKY360 Logo" 
-              style={{ height: '55px', width: 'auto', objectFit: 'contain' }} 
+              style={{ height: '60px', width: 'auto', objectFit: 'contain', display: 'block' }} 
             />
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'center' : 'flex-start', gap: '4px' }}>
               <h2 style={{ margin: 0, color: '#004080', fontSize: '20px', fontWeight: '700' }}>Operations Portal</h2>
               <button 
                 onClick={() => setShowLandingPage(true)} 
-                style={{ marginTop: '4px', padding: '4px 10px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '11px' }}
+                style={{ padding: '4px 10px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '11px' }}
               >
                 ← Back to Main Website
               </button>
             </div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '6px', width: isMobile ? '100%' : 'auto' }}>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
+          {/* User Email & Actions Group */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: isMobile ? 'center' : 'flex-end', 
+            gap: '8px', 
+            width: isMobile ? '100%' : 'auto' 
+          }}>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {isAdmin && (
                 <button 
                   onClick={() => setViewMode(viewMode === 'user' ? 'admin' : 'user')} 
-                  style={{ padding: '8px 12px', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', fontWeight: '600', fontSize: '13px' }}
+                  style={{ padding: '8px 14px', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', fontWeight: '600', fontSize: '13px' }}
                 >
                   {viewMode === 'user' ? 'Admin Panel ⚙️' : 'My Portal 👤'}
                 </button>
               )}
               <button 
                 onClick={() => supabase.auth.signOut()} 
-                style={{ padding: '8px 12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#334155', fontWeight: '500', fontSize: '13px' }}
+                style={{ padding: '8px 14px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#334155', fontWeight: '500', fontSize: '13px' }}
               >
                 Sign Out
               </button>
             </div>
 
-            <p style={{ margin: 0, color: '#475569', fontSize: '12px' }}>
+            <p style={{ margin: 0, color: '#475569', fontSize: '12px', textAlign: isMobile ? 'center' : 'right' }}>
               User: <strong>{session.user.email}</strong> {isAdmin && <span style={{ backgroundColor: '#0066cc', color: '#fff', padding: '2px 5px', borderRadius: '3px', fontSize: '10px', marginLeft: '4px' }}>Admin</span>}
             </p>
           </div>
@@ -511,12 +538,12 @@ export default function App() {
               </div>
             </div>
 
-            {/* Tabs Selector */}
-            <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #bae6fd' }}>
+            {/* Centered / Flexible Tabs Selector */}
+            <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-start', gap: '8px', borderBottom: '2px solid #bae6fd' }}>
               <button 
                 onClick={() => setActiveTab('work')}
                 style={{ 
-                  padding: '10px 16px', 
+                  padding: '10px 18px', 
                   backgroundColor: activeTab === 'work' ? '#ffffff' : 'transparent', 
                   color: activeTab === 'work' ? '#0066cc' : '#64748b', 
                   border: activeTab === 'work' ? '1px solid #bae6fd' : 'none', 
@@ -533,7 +560,7 @@ export default function App() {
               <button 
                 onClick={() => setActiveTab('expense')}
                 style={{ 
-                  padding: '10px 16px', 
+                  padding: '10px 18px', 
                   backgroundColor: activeTab === 'expense' ? '#ffffff' : 'transparent', 
                   color: activeTab === 'expense' ? '#059669' : '#64748b', 
                   border: activeTab === 'expense' ? '1px solid #bae6fd' : 'none', 
