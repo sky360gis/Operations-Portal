@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabaseClient';
 import Auth from './Auth.jsx';
+import LandingPage from './LandingPage.jsx';
 import logo from './assets/logo.png';
 
 // Add your allowed employee and admin emails here:
@@ -14,6 +15,7 @@ const ALLOWED_EMAILS = [
 const INACTIVITY_LIMIT = 15 * 60 * 1000; 
 
 export default function App() {
+  const [showLandingPage, setShowLandingPage] = useState(true);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -310,6 +312,11 @@ export default function App() {
     return <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>Loading application...</div>;
   }
 
+  // Render Landing Page first when visitor opens the website
+  if (showLandingPage) {
+    return <LandingPage onGoToPortal={() => setShowLandingPage(false)} />;
+  }
+
   if (unauthorizedEmail) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f0f6ff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
@@ -347,7 +354,15 @@ export default function App() {
               alt="SKY360 Logo" 
               style={{ height: '87px', width: 'auto', objectFit: 'contain', display: 'block' }} 
             />
-            <h2 style={{ margin: 0, color: '#004080', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Operations Portal</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <h2 style={{ margin: 0, color: '#004080', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Operations Portal</h2>
+              <button 
+                onClick={() => setShowLandingPage(true)} 
+                style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#475569', fontWeight: '600', fontSize: '12px' }}
+              >
+                ← Back to Website
+              </button>
+            </div>
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
