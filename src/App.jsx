@@ -18,6 +18,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [viewMode, setViewMode] = useState('user'); // 'user' | 'admin'
   const [activeTab, setActiveTab] = useState('work'); // 'work' | 'expense'
+  const [unauthorizedEmail, setUnauthorizedEmail] = useState(null);
 
   // Ref to hold current timer ID to prevent stale closures
   const idleTimerRef = useRef(null);
@@ -103,13 +104,12 @@ export default function App() {
     if (currentSession) {
       const userEmail = currentSession.user.email;
       if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(userEmail)) {
-        await supabase.auth.signOut();
-        setSession(null);
+        setUnauthorizedEmail(userEmail);
         setLoading(false);
-        alert(`Access Denied: ${userEmail} is not authorized to access this portal.`);
         return;
       }
     }
+    setUnauthorizedEmail(null);
     setSession(currentSession);
     setLoading(false);
   };
@@ -303,6 +303,33 @@ export default function App() {
 
   if (loading) {
     return <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>Loading application...</div>;
+  }
+
+  if (unauthorizedEmail) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f0f6ff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+        <div style={{ backgroundColor: '#ffffff', padding: '40px 30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', textAlign: 'center', width: '400px', borderTop: '4px solid #dc2626' }}>
+          <img src={logo} alt="SKY360 Logo" style={{ height: '60px', width: 'auto', objectFit: 'contain', marginBottom: '20px' }} />
+          <h3 style={{ color: '#991b1b', marginBottom: '12px', fontSize: '20px' }}>Access Restricted</h3>
+          <p style={{ color: '#475569', fontSize: '14px', marginBottom: '8px', lineHeight: '1.5' }}>
+            User <strong>{unauthorizedEmail}</strong> is not authorized to access the portal.
+          </p>
+          <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '25px' }}>
+            Please contact portal Admin for access.
+          </p>
+          <button 
+            onClick={async () => {
+              await supabase.auth.signOut();
+              setUnauthorizedEmail(null);
+              setSession(null);
+            }}
+            style={{ width: '100%', padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
+          >
+            Sign Out / Return to Login
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!session) {
