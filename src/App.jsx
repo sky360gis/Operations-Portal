@@ -3,6 +3,12 @@ import { supabase } from './supabaseClient';
 import Auth from './Auth.jsx';
 import logo from './assets/logo.png';
 
+// Add your allowed employee and admin emails here:
+const ALLOWED_EMAILS = [
+  'sandeep@sky360.com', // Replace/add your team emails here
+  'admin2@sky360.com',
+];
+
 // Idle timeout limit: 15 minutes (change to 10 * 1000 for quick testing)
 const INACTIVITY_LIMIT = 15 * 60 * 1000; 
 
@@ -48,7 +54,7 @@ export default function App() {
     try {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
       await supabase.auth.signOut();
-      setSession(null); // Explicitly reset session in state immediately
+      setSession(null);
       alert("You have been automatically logged out due to inactivity.");
     } catch (err) {
       console.error("Error signing out:", err);
@@ -64,14 +70,12 @@ export default function App() {
       idleTimerRef.current = setTimeout(forceLogout, INACTIVITY_LIMIT);
     };
 
-    // Events to track user activity
     const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll', 'click'];
 
     events.forEach((event) => {
       window.addEventListener(event, resetTimer, { passive: true });
     });
 
-    // Start timer on mount
     resetTimer();
 
     return () => {
@@ -84,17 +88,31 @@ export default function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
+      validateAndSetSession(session);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
+      validateAndSetSession(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Check if logged-in user is authorized
+  const validateAndSetSession = async (currentSession) => {
+    if (currentSession) {
+      const userEmail = currentSession.user.email;
+      if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(userEmail)) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setLoading(false);
+        alert(`Access Denied: ${userEmail} is not authorized to access this portal.`);
+        return;
+      }
+    }
+    setSession(currentSession);
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (session) {
@@ -153,27 +171,18 @@ export default function App() {
   };
 
   const handleCheckIn = async () => {
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { data, error } = await supabase.from('attendance').insert([{
-          user_id: session.user.id,
-          location_lat: pos.coords.latitude,
-          location_lng: pos.coords.longitude
-        }]).select().single();
+    const { data, error } = await supabase.from('attendance').insert([{
+      user_id: session.user.id
+    }]).select().single();
 
-        if (!error && data) {
-          setAttendanceId(data.id);
-          setCheckInTime(new Date(data.check_in).toLocaleTimeString());
-          setAttendanceStatus('checked_in');
-          alert('Checked in successfully for today!');
-        } else {
-          alert('Error checking in: ' + error.message);
-        }
-      },
-      () => {
-        alert('Please enable location access in your browser to check in.');
-      }
-    );
+    if (!error && data) {
+      setAttendanceId(data.id);
+      setCheckInTime(new Date(data.check_in).toLocaleTimeString());
+      setAttendanceStatus('checked_in');
+      alert('Checked in successfully for today!');
+    } else {
+      alert('Error checking in: ' + error.message);
+    }
   };
 
   const handleCheckOut = async () => {
@@ -307,7 +316,6 @@ export default function App() {
         {/* Navigation Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px', backgroundColor: '#ffffff', padding: '22px 25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', borderTop: '4px solid #0066cc', flexWrap: 'wrap', gap: '15px' }}>
           
-          {/* Left Column: Logo & Operations Portal Title */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <img 
               src={logo} 
@@ -317,7 +325,6 @@ export default function App() {
             <h2 style={{ margin: 0, color: '#004080', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Operations Portal</h2>
           </div>
           
-          {/* Right Column: Actions (Sign Out & Admin Toggle) + User Info Below */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
             <div style={{ display: 'flex', gap: '10px' }}>
               {isAdmin && (
@@ -336,7 +343,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* User Info aligned below Sign Out */}
             <p style={{ margin: 0, color: '#475569', fontSize: '13px', textAlign: 'right' }}>
               User: <strong>{session.user.email}</strong> {isAdmin && <span style={{ backgroundColor: '#0066cc', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', marginLeft: '6px' }}>Admin</span>}
             </p>
@@ -369,7 +375,6 @@ export default function App() {
                     <th style={{ padding: '10px', color: '#0369a1' }}>Employee</th>
                     <th style={{ padding: '10px', color: '#0369a1' }}>Check In</th>
                     <th style={{ padding: '10px', color: '#0369a1' }}>Check Out</th>
-                    <th style={{ padding: '10px', color: '#0369a1' }}>Location</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -378,13 +383,6 @@ export default function App() {
                       <td style={{ padding: '10px', fontWeight: '500' }}>{att.profiles?.email || 'User'}</td>
                       <td style={{ padding: '10px' }}>{new Date(att.check_in).toLocaleString()}</td>
                       <td style={{ padding: '10px' }}>{att.check_out ? new Date(att.check_out).toLocaleString() : <span style={{ color: '#16a34a' }}>Active Now</span>}</td>
-                      <td style={{ padding: '10px' }}>
-                        {att.location_lat && att.location_lng ? (
-                          <a href={`https://maps.google.com/?q=${att.location_lat},${att.location_lng}`} target="_blank" rel="noreferrer" style={{ color: '#0066cc' }}>
-                            {att.location_lat.toFixed(4)}, {att.location_lng.toFixed(4)} 📍
-                          </a>
-                        ) : 'N/A'}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -423,7 +421,7 @@ export default function App() {
           /* STANDARD USER WORKSPACE VIEW */
           <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
             
-            {/* Locked Daily Attendance Status Block */}
+            {/* Daily Attendance Status Block */}
             <div style={{ backgroundColor: '#ffffff', padding: '20px 25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', borderLeft: '5px solid #0066cc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
               <div>
                 <h3 style={{ margin: '0 0 4px 0', color: '#004080', fontSize: '16px' }}>Daily Attendance Status</h3>
@@ -502,7 +500,6 @@ export default function App() {
             {activeTab === 'work' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', alignItems: 'start' }}>
                 
-                {/* Form Card */}
                 <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
                   <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Add Work Activity</h3>
                   <form onSubmit={handleAddLog} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -550,7 +547,6 @@ export default function App() {
                   </form>
                 </div>
 
-                {/* History Card */}
                 <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
                   <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Your Work History ({logs.length})</h3>
                   {logs.length === 0 ? (
@@ -582,7 +578,6 @@ export default function App() {
             {activeTab === 'expense' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', alignItems: 'start' }}>
                 
-                {/* Expense Form Card */}
                 <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
                   <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Log Field Expense / Fuel</h3>
                   <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -642,7 +637,6 @@ export default function App() {
                   </form>
                 </div>
 
-                {/* Expense History Card */}
                 <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
                   <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Your Expenses History ({myExpenses.length})</h3>
                   {myExpenses.length === 0 ? (
