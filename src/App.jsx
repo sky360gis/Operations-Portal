@@ -4,7 +4,6 @@ import Auth from './Auth.jsx';
 import LandingPage from './LandingPage.jsx';
 import logo from './assets/logo.png';
 
-// Whitelisted Emails
 const ALLOWED_EMAILS = [
   'sandeep.p1981@gmail.com',
   'sandeep@sky360.com',
@@ -21,8 +20,16 @@ export default function App() {
   const [viewMode, setViewMode] = useState('user'); // 'user' | 'admin'
   const [activeTab, setActiveTab] = useState('work'); // 'work' | 'expense'
   const [unauthorizedEmail, setUnauthorizedEmail] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const idleTimerRef = useRef(null);
+
+  // Track window size for mobile responsiveness
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [projectList, setProjectList] = useState([]);
   const [attendanceStatus, setAttendanceStatus] = useState('not_checked_in');
@@ -298,18 +305,17 @@ export default function App() {
     return <div style={{ textAlign: 'center', marginTop: '50px', fontFamily: 'sans-serif' }}>Loading application...</div>;
   }
 
-  // Render Landing Page first
   if (showLandingPage) {
     return <LandingPage onGoToPortal={() => setShowLandingPage(false)} />;
   }
 
   if (unauthorizedEmail) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f0f6ff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-        <div style={{ backgroundColor: '#ffffff', padding: '40px 30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', textAlign: 'center', width: '400px', borderTop: '4px solid #dc2626' }}>
-          <img src={logo} alt="SKY360 Logo" style={{ height: '60px', width: 'auto', objectFit: 'contain', marginBottom: '20px' }} />
-          <h3 style={{ color: '#991b1b', marginBottom: '12px', fontSize: '20px' }}>Access Restricted</h3>
-          <p style={{ color: '#991b1b', fontSize: '14px', marginBottom: '25px', lineHeight: '1.5', fontWeight: '600' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f0f6ff', padding: '20px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+        <div style={{ backgroundColor: '#ffffff', padding: '30px 20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', textAlign: 'center', width: '100%', maxWidth: '380px', borderTop: '4px solid #dc2626', boxSizing: 'border-box' }}>
+          <img src={logo} alt="SKY360 Logo" style={{ height: '50px', width: 'auto', objectFit: 'contain', marginBottom: '15px' }} />
+          <h3 style={{ color: '#991b1b', marginBottom: '10px', fontSize: '18px' }}>Access Restricted</h3>
+          <p style={{ color: '#991b1b', fontSize: '13px', marginBottom: '20px', lineHeight: '1.5', fontWeight: '600' }}>
             Unauthorised User, Contact Admin for Sign In
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -336,11 +342,10 @@ export default function App() {
 
   if (!session) {
     return (
-      <div style={{ position: 'relative' }}>
-        {/* Quick button to return to main website from login page */}
+      <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f0f6ff' }}>
         <button 
           onClick={() => setShowLandingPage(true)} 
-          style={{ position: 'absolute', top: '20px', left: '20px', padding: '8px 16px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '13px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+          style={{ position: 'absolute', top: '15px', left: '15px', padding: '8px 14px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
         >
           ← Back to Main Website
         </button>
@@ -350,51 +355,49 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f0f6ff', padding: '30px 20px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f0f6ff', padding: '20px 10px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', boxSizing: 'border-box' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         
         {/* Navigation Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px', backgroundColor: '#ffffff', padding: '22px 25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', borderTop: '4px solid #0066cc', flexWrap: 'wrap', gap: '15px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', borderTop: '4px solid #0066cc', flexWrap: 'wrap', gap: '15px' }}>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
             <img 
               src={logo} 
               alt="SKY360 Logo" 
-              style={{ height: '87px', width: 'auto', objectFit: 'contain', display: 'block' }} 
+              style={{ height: '55px', width: 'auto', objectFit: 'contain' }} 
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <h2 style={{ margin: 0, color: '#004080', fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Operations Portal</h2>
-              
-              {/* Button to go back to main website */}
+            <div>
+              <h2 style={{ margin: 0, color: '#004080', fontSize: '20px', fontWeight: '700' }}>Operations Portal</h2>
               <button 
                 onClick={() => setShowLandingPage(true)} 
-                style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '12px' }}
+                style={{ marginTop: '4px', padding: '4px 10px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', color: '#0066cc', fontWeight: '600', fontSize: '11px' }}
               >
                 ← Back to Main Website
               </button>
             </div>
           </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-            <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '6px', width: isMobile ? '100%' : 'auto' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
               {isAdmin && (
                 <button 
                   onClick={() => setViewMode(viewMode === 'user' ? 'admin' : 'user')} 
-                  style={{ padding: '8px 16px', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', fontWeight: '600', fontSize: '14px' }}
+                  style={{ padding: '8px 12px', background: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '6px', cursor: 'pointer', color: '#0369a1', fontWeight: '600', fontSize: '13px' }}
                 >
-                  {viewMode === 'user' ? 'Switch to Admin Panel ⚙️' : 'Switch to My Portal 👤'}
+                  {viewMode === 'user' ? 'Admin Panel ⚙️' : 'My Portal 👤'}
                 </button>
               )}
               <button 
                 onClick={() => supabase.auth.signOut()} 
-                style={{ padding: '8px 16px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#334155', fontWeight: '500', fontSize: '14px' }}
+                style={{ padding: '8px 12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#334155', fontWeight: '500', fontSize: '13px' }}
               >
                 Sign Out
               </button>
             </div>
 
-            <p style={{ margin: 0, color: '#475569', fontSize: '13px', textAlign: 'right' }}>
-              User: <strong>{session.user.email}</strong> {isAdmin && <span style={{ backgroundColor: '#0066cc', color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', marginLeft: '6px' }}>Admin</span>}
+            <p style={{ margin: 0, color: '#475569', fontSize: '12px' }}>
+              User: <strong>{session.user.email}</strong> {isAdmin && <span style={{ backgroundColor: '#0066cc', color: '#fff', padding: '2px 5px', borderRadius: '3px', fontSize: '10px', marginLeft: '4px' }}>Admin</span>}
             </p>
           </div>
 
@@ -402,24 +405,24 @@ export default function App() {
 
         {/* ADMIN DASHBOARD VIEW */}
         {isAdmin && viewMode === 'admin' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ffffff', padding: '15px 25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
-              <h3 style={{ margin: 0, color: '#004080', fontSize: '16px' }}>Executive Reports & Exports</h3>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={exportToCSV} style={{ padding: '8px 16px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
-                  Export Work Logs (CSV) 📥
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ffffff', padding: '15px 20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', flexWrap: 'wrap', gap: '10px' }}>
+              <h3 style={{ margin: 0, color: '#004080', fontSize: '15px' }}>Executive Reports & Exports</h3>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button onClick={exportToCSV} style={{ padding: '8px 14px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>
+                  Export CSV 📥
                 </button>
-                <button onClick={handlePrintPDF} style={{ padding: '8px 16px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
-                  Print / Save Summary PDF 📄
+                <button onClick={handlePrintPDF} style={{ padding: '8px 14px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>
+                  Print PDF 📄
                 </button>
               </div>
             </div>
 
             {/* Team Attendance Register */}
-            <div style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
-              <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '18px' }}>Team Attendance Register</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+            <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', overflowX: 'auto' }}>
+              <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '17px' }}>Team Attendance Register</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px', minWidth: '500px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#e0f2fe', borderBottom: '2px solid #bae6fd' }}>
                     <th style={{ padding: '10px', color: '#0369a1' }}>Employee</th>
@@ -440,9 +443,9 @@ export default function App() {
             </div>
 
             {/* Expenses Overview */}
-            <div style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
-              <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '18px' }}>Logged Field Expenses</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
+            <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', overflowX: 'auto' }}>
+              <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '17px' }}>Logged Field Expenses</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px', minWidth: '600px' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#e0f2fe', borderBottom: '2px solid #bae6fd' }}>
                     <th style={{ padding: '10px', color: '#0369a1' }}>Employee</th>
@@ -469,97 +472,97 @@ export default function App() {
           </div>
         ) : (
           /* STANDARD USER WORKSPACE VIEW */
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             
             {/* Daily Attendance Status Block */}
-            <div style={{ backgroundColor: '#ffffff', padding: '20px 25px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', borderLeft: '5px solid #0066cc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+            <div style={{ backgroundColor: '#ffffff', padding: '18px 20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', borderLeft: '5px solid #0066cc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
               <div>
-                <h3 style={{ margin: '0 0 4px 0', color: '#004080', fontSize: '16px' }}>Daily Attendance Status</h3>
-                <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>Mark your single check-in and check-out for today.</p>
+                <h3 style={{ margin: '0 0 4px 0', color: '#004080', fontSize: '15px' }}>Daily Attendance Status</h3>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Mark your check-in and check-out for today.</p>
               </div>
 
               <div>
                 {attendanceStatus === 'not_checked_in' && (
                   <button 
                     onClick={handleCheckIn} 
-                    style={{ padding: '10px 20px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
+                    style={{ padding: '10px 18px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
                   >
                     Check In For Today 🟢
                   </button>
                 )}
 
                 {attendanceStatus === 'checked_in' && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <span style={{ color: '#16a34a', fontWeight: '600', fontSize: '13px' }}>Checked In at {checkInTime} 🟢</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <span style={{ color: '#16a34a', fontWeight: '600', fontSize: '12px' }}>Checked In at {checkInTime} 🟢</span>
                     <button 
                       onClick={handleCheckOut} 
-                      style={{ padding: '10px 20px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
+                      style={{ padding: '10px 18px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
                     >
-                      Check Out (End Day) 🔴
+                      Check Out 🔴
                     </button>
                   </div>
                 )}
 
                 {attendanceStatus === 'completed' && (
-                  <div style={{ backgroundColor: '#f0f6ff', padding: '8px 15px', borderRadius: '6px', border: '1px solid #bae6fd' }}>
-                    <span style={{ color: '#004080', fontWeight: '600', fontSize: '13px' }}>Attendance Completed ✅ ({checkInTime} - {checkOutTime})</span>
+                  <div style={{ backgroundColor: '#f0f6ff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+                    <span style={{ color: '#004080', fontWeight: '600', fontSize: '12px' }}>Attendance Completed ✅</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Full Screen Interactive Tabs Selector */}
-            <div style={{ display: 'flex', gap: '10px', borderBottom: '2px solid #bae6fd', paddingBottom: '0px' }}>
+            {/* Tabs Selector */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #bae6fd' }}>
               <button 
                 onClick={() => setActiveTab('work')}
                 style={{ 
-                  padding: '12px 24px', 
+                  padding: '10px 16px', 
                   backgroundColor: activeTab === 'work' ? '#ffffff' : 'transparent', 
                   color: activeTab === 'work' ? '#0066cc' : '#64748b', 
                   border: activeTab === 'work' ? '1px solid #bae6fd' : 'none', 
                   borderBottom: activeTab === 'work' ? '2px solid #0066cc' : 'none',
-                  borderTopLeftRadius: '8px', 
-                  borderTopRightRadius: '8px', 
+                  borderTopLeftRadius: '6px', 
+                  borderTopRightRadius: '6px', 
                   cursor: 'pointer', 
                   fontWeight: '600', 
-                  fontSize: '15px' 
+                  fontSize: '13px' 
                 }}
               >
-                📁 Add & View Work Activity
+                📁 Work Activity
               </button>
               <button 
                 onClick={() => setActiveTab('expense')}
                 style={{ 
-                  padding: '12px 24px', 
+                  padding: '10px 16px', 
                   backgroundColor: activeTab === 'expense' ? '#ffffff' : 'transparent', 
                   color: activeTab === 'expense' ? '#059669' : '#64748b', 
                   border: activeTab === 'expense' ? '1px solid #bae6fd' : 'none', 
                   borderBottom: activeTab === 'expense' ? '2px solid #059669' : 'none',
-                  borderTopLeftRadius: '8px', 
-                  borderTopRightRadius: '8px', 
+                  borderTopLeftRadius: '6px', 
+                  borderTopRightRadius: '6px', 
                   cursor: 'pointer', 
                   fontWeight: '600', 
-                  fontSize: '15px' 
+                  fontSize: '13px' 
                 }}
               >
-                💰 Log Field Expense / Fuel
+                💰 Field Expense
               </button>
             </div>
 
             {/* TAB 1: WORK ACTIVITY VIEW */}
             {activeTab === 'work' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', alignItems: 'start' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', alignItems: 'start' }}>
                 
-                <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
-                  <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Add Work Activity</h3>
-                  <form onSubmit={handleAddLog} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', boxSizing: 'border-box' }}>
+                  <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '17px' }}>Add Work Activity</h3>
+                  <form onSubmit={handleAddLog} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#475569', marginBottom: '8px' }}>Project Name</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#475569', marginBottom: '6px' }}>Project Name</label>
                       <select 
                         value={project} 
                         onChange={(e) => setProject(e.target.value)} 
                         required 
-                        style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', backgroundColor: '#fff' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff', boxSizing: 'border-box' }}
                       >
                         {projectList.map(p => (
                           <option key={p.id} value={p.name}>{p.name}</option>
@@ -567,7 +570,7 @@ export default function App() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#475569', marginBottom: '8px' }}>Hours Spent</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#475569', marginBottom: '6px' }}>Hours Spent</label>
                       <input 
                         type="number" 
                         step="0.5" 
@@ -575,45 +578,45 @@ export default function App() {
                         value={hours} 
                         onChange={(e) => setHours(e.target.value)} 
                         required 
-                        style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#475569', marginBottom: '8px' }}>Task Description</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#475569', marginBottom: '6px' }}>Task Description</label>
                       <textarea 
                         placeholder="Describe tasks completed..." 
                         value={task} 
                         onChange={(e) => setTask(e.target.value)} 
                         required 
-                        style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', minHeight: '100px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', minHeight: '90px', boxSizing: 'border-box' }}
                       />
                     </div>
                     <button 
                       type="submit" 
-                      style={{ padding: '14px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '15px' }}
+                      style={{ padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
                     >
                       + Save Work Item
                     </button>
                   </form>
                 </div>
 
-                <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
-                  <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Your Work History ({logs.length})</h3>
+                <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', boxSizing: 'border-box' }}>
+                  <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '17px' }}>Your Work History ({logs.length})</h3>
                   {logs.length === 0 ? (
-                    <p style={{ color: '#94a3b8', fontSize: '14px' }}>No work records found.</p>
+                    <p style={{ color: '#94a3b8', fontSize: '13px' }}>No work records found.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '450px', overflowY: 'auto' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
                       {logs.map((log) => (
-                        <div key={log.id} style={{ padding: '15px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <strong style={{ color: '#1e293b', fontSize: '14px' }}>{log.project_name}</strong>
-                            <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: '600' }}>
+                        <div key={log.id} style={{ padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <strong style={{ color: '#1e293b', fontSize: '13px' }}>{log.project_name}</strong>
+                            <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '600' }}>
                               {log.hours_spent} hrs
                             </span>
                           </div>
-                          <p style={{ margin: '0 0 8px 0', color: '#475569', fontSize: '13px', lineHeight: '1.4' }}>{log.task_description}</p>
-                          <span style={{ color: '#94a3b8', fontSize: '11px' }}>
-                            Logged on: {new Date(log.created_at).toLocaleString()}
+                          <p style={{ margin: '0 0 6px 0', color: '#475569', fontSize: '12px', lineHeight: '1.4' }}>{log.task_description}</p>
+                          <span style={{ color: '#94a3b8', fontSize: '10px' }}>
+                            {new Date(log.created_at).toLocaleString()}
                           </span>
                         </div>
                       ))}
@@ -626,18 +629,18 @@ export default function App() {
 
             {/* TAB 2: EXPENSE VIEW */}
             {activeTab === 'expense' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', alignItems: 'start' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px', alignItems: 'start' }}>
                 
-                <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
-                  <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Log Field Expense / Fuel</h3>
-                  <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', boxSizing: 'border-box' }}>
+                  <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '17px' }}>Log Field Expense</h3>
+                  <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#475569', marginBottom: '8px' }}>Project</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#475569', marginBottom: '6px' }}>Project</label>
                       <select 
                         value={expProject} 
                         onChange={(e) => setExpProject(e.target.value)} 
                         required 
-                        style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', backgroundColor: '#fff' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff', boxSizing: 'border-box' }}
                       >
                         {projectList.map(p => (
                           <option key={p.id} value={p.name}>{p.name}</option>
@@ -645,11 +648,11 @@ export default function App() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#475569', marginBottom: '8px' }}>Category</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#475569', marginBottom: '6px' }}>Category</label>
                       <select 
                         value={expCategory} 
                         onChange={(e) => setExpCategory(e.target.value)} 
-                        style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', backgroundColor: '#fff' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff', boxSizing: 'border-box' }}
                       >
                         <option value="Fuel">Fuel</option>
                         <option value="Travel / Food">Travel / Food</option>
@@ -658,50 +661,50 @@ export default function App() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#475569', marginBottom: '8px' }}>Amount (₹)</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#475569', marginBottom: '6px' }}>Amount (₹)</label>
                       <input 
                         type="number" 
                         placeholder="e.g. 500" 
                         value={expAmount} 
                         onChange={(e) => setExpAmount(e.target.value)} 
                         required 
-                        style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#475569', marginBottom: '8px' }}>Notes / Description</label>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '500', color: '#475569', marginBottom: '6px' }}>Description</label>
                       <input 
                         type="text" 
                         placeholder="e.g. DGPS Survey vehicle fuel refill" 
                         value={expDesc} 
                         onChange={(e) => setExpDesc(e.target.value)} 
-                        style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                       />
                     </div>
                     <button 
                       type="submit" 
-                      style={{ padding: '14px', backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '15px' }}
+                      style={{ padding: '12px', backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}
                     >
                       + Save Expense
                     </button>
                   </form>
                 </div>
 
-                <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)' }}>
-                  <h3 style={{ margin: '0 0 20px 0', color: '#004080', fontSize: '18px' }}>Your Expenses History ({myExpenses.length})</h3>
+                <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)', boxSizing: 'border-box' }}>
+                  <h3 style={{ margin: '0 0 15px 0', color: '#004080', fontSize: '17px' }}>Your Expenses History ({myExpenses.length})</h3>
                   {myExpenses.length === 0 ? (
-                    <p style={{ color: '#94a3b8', fontSize: '14px' }}>No expenses recorded.</p>
+                    <p style={{ color: '#94a3b8', fontSize: '13px' }}>No expenses recorded.</p>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '450px', overflowY: 'auto' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
                       {myExpenses.map((exp) => (
-                        <div key={exp.id} style={{ padding: '15px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <strong style={{ color: '#1e293b', fontSize: '14px' }}>{exp.project_name}</strong>
-                            <span style={{ color: '#059669', fontWeight: '700', fontSize: '14px' }}>₹{exp.amount}</span>
+                        <div key={exp.id} style={{ padding: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <strong style={{ color: '#1e293b', fontSize: '13px' }}>{exp.project_name}</strong>
+                            <span style={{ color: '#059669', fontWeight: '700', fontSize: '13px' }}>₹{exp.amount}</span>
                           </div>
-                          <p style={{ margin: '0 0 4px 0', color: '#475569', fontSize: '13px' }}><strong>{exp.category}</strong>: {exp.description || 'No notes'}</p>
-                          <span style={{ color: '#94a3b8', fontSize: '11px' }}>
-                            Logged on: {new Date(exp.created_at).toLocaleString()}
+                          <p style={{ margin: '0 0 4px 0', color: '#475569', fontSize: '12px' }}><strong>{exp.category}</strong>: {exp.description || 'No notes'}</p>
+                          <span style={{ color: '#94a3b8', fontSize: '10px' }}>
+                            {new Date(exp.created_at).toLocaleString()}
                           </span>
                         </div>
                       ))}
