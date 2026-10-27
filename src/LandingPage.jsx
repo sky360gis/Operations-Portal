@@ -1,15 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import logo from './assets/logo.png';
 
 export default function LandingPage({ onGoToPortal }) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', color: '#1e293b', boxSizing: 'border-box' }}>
       
       {/* Top Header / Navigation Bar */}
-      <header style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+      <header style={{ 
+        backgroundColor: '#ffffff', 
+        borderBottom: '1px solid #e2e8f0', 
+        padding: '15px 20px', 
+        display: 'flex', 
+        flexDirection: isMobile ? 'column' : 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        gap: '15px', 
+        boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+        textAlign: isMobile ? 'center' : 'left'
+      }}>
         
-        {/* Scaled Logo */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* Centered Logo on Mobile */}
+        <div style={{ display: 'flex', justifyContent: 'center', width: isMobile ? '100%' : 'auto' }}>
           <img 
             src={logo} 
             alt="SKY360 Logo" 
@@ -17,27 +36,29 @@ export default function LandingPage({ onGoToPortal }) {
           />
         </div>
 
-        {/* Portal Button */}
-        <button 
-          onClick={onGoToPortal}
-          style={{ 
-            padding: '10px 18px', 
-            backgroundColor: '#0066cc', 
-            color: '#ffffff', 
-            border: 'none', 
-            borderRadius: '6px', 
-            fontWeight: '600', 
-            fontSize: '13px', 
-            cursor: 'pointer', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '6px', 
-            boxShadow: '0 2px 6px rgba(0, 102, 204, 0.25)',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          <span>Operations Portal →</span>
-        </button>
+        {/* Centered Portal Button on Mobile */}
+        <div style={{ display: 'flex', justifyContent: 'center', width: isMobile ? '100%' : 'auto' }}>
+          <button 
+            onClick={onGoToPortal}
+            style={{ 
+              padding: '10px 20px', 
+              backgroundColor: '#0066cc', 
+              color: '#ffffff', 
+              border: 'none', 
+              borderRadius: '6px', 
+              fontWeight: '600', 
+              fontSize: '13px', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              boxShadow: '0 2px 6px rgba(0, 102, 204, 0.25)',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <span>Operations Portal →</span>
+          </button>
+        </div>
       </header>
 
       {/* Hero Section */}
