@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
 import Auth from './Auth.jsx';
 import logo from './assets/logo.png';
+
+// Idle timeout limit: 15 minutes in milliseconds
+const INACTIVITY_LIMIT = 15 * 60 * 1000;
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -36,6 +39,44 @@ export default function App() {
   const [allAttendance, setAllAttendance] = useState([]);
   const [allLogs, setAllLogs] = useState([]);
   const [allExpenses, setAllExpenses] = useState([]);
+
+  // Handle automatic logout due to inactivity
+  const handleIdleLogout = useCallback(async () => {
+    if (session) {
+      await supabase.auth.signOut();
+      alert("You have been automatically logged out due to inactivity.");
+      window.location.reload();
+    }
+  }, [session]);
+
+  // Setup Idle Timer Listener
+  useEffect(() => {
+    if (!session) return;
+
+    let timer;
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(handleIdleLogout, INACTIVITY_LIMIT);
+    };
+
+    // User interaction events to monitor
+    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+
+    events.forEach((event) => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    // Initialize timer
+    resetTimer();
+
+    return () => {
+      clearTimeout(timer);
+      events.forEach((event) => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [session, handleIdleLogout]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
