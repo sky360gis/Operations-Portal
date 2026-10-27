@@ -1,17 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
 import logo from './assets/logo.png';
 
+const ALLOWED_EMAILS = [
+  'sandeep@sky360.com', // Add your authorized emails here
+  'admin2@sky360.com',
+];
+
 export default function Auth() {
+  const [errorMessage, setErrorMessage] = useState(null);
+
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    setErrorMessage(null);
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin,
       },
     });
+
     if (error) {
-      alert('Error logging in with Google: ' + error.message);
+      setErrorMessage('Error logging in with Google: ' + error.message);
     }
   };
 
@@ -29,8 +38,15 @@ export default function Auth() {
         </div>
 
         <h2 style={{ color: '#004080', marginBottom: '8px', fontSize: '22px', fontWeight: '700' }}>Operations Portal</h2>
-        <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '30px', lineHeight: '1.4' }}>Sign In to Mark Attendance, Log Work and Expenses</p>
+        <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '25px', lineHeight: '1.4' }}>Sign In to Mark Attendance, Log Work and Expenses</p>
         
+        {/* Persistent Unauthorized Message Card */}
+        {errorMessage && (
+          <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', color: '#991b1b', fontSize: '13px', lineHeight: '1.4', fontWeight: '500' }}>
+            {errorMessage}
+          </div>
+        )}
+
         <button 
           onClick={handleGoogleLogin}
           style={{ 
