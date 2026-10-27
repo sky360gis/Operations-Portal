@@ -5,11 +5,12 @@ import logo from './assets/logo.png';
 
 // Add your allowed employee and admin emails here:
 const ALLOWED_EMAILS = [
-  'sandeep@sky360.com', // Replace/add your team emails here
+  'sandeep.p1981@gmail.com', // Your admin account
+  'sandeep@sky360.com',
   'admin2@sky360.com',
 ];
 
-// Idle timeout limit: 15 minutes (change to 10 * 1000 for quick testing)
+// Idle timeout limit: 15 minutes
 const INACTIVITY_LIMIT = 15 * 60 * 1000; 
 
 export default function App() {
@@ -103,6 +104,8 @@ export default function App() {
   const validateAndSetSession = async (currentSession) => {
     if (currentSession) {
       const userEmail = currentSession.user.email;
+      console.log("Logged-in user email:", userEmail);
+
       if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(userEmail)) {
         await supabase.auth.signOut();
         setSession(null);
@@ -172,7 +175,6 @@ export default function App() {
     }
   };
 
-  // Check in without geofencing / location prompts
   const handleCheckIn = async () => {
     const { data, error } = await supabase.from('attendance').insert([{
       user_id: session.user.id
