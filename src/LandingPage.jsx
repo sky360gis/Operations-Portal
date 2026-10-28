@@ -5,7 +5,7 @@ export default function LandingPage({ onGoToPortal }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // KML Generator Core States
-  const [activeOption, setActiveOption] = useState('optionA'); // 'optionA' | 'optionB' | 'optionC'
+  const [activeOption, setActiveOption] = useState('optionA'); // 'optionA' | 'optionb' | 'optionC'
   const [polygonName, setPolygonName] = useState('SKY360_Survey_Block');
   
   // Option A States (File Upload)
@@ -18,11 +18,12 @@ export default function LandingPage({ onGoToPortal }) {
     'Point_1, 12.9716, 77.5946\nPoint_2, 12.9750, 77.6000\nPoint_3, 12.9680, 77.6050'
   );
 
-  // Option C States (Sketch / PDF Reference Preview)
+  // Option C States (Sketch / PDF OCR Reference Preview)
   const [sketchPreview, setSketchPreview] = useState(null);
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const [ocrMessage, setOcrMessage] = useState('');
   const [sketchCoords, setSketchCoords] = useState([
-    { name: 'P1', lat: '12.9716', lon: '77.5946' },
-    { name: 'P2', lat: '12.9750', lon: '77.6000' }
+    { name: 'P1', lat: '', lon: '' }
   ]);
 
   // Download Output States
@@ -35,34 +36,27 @@ export default function LandingPage({ onGoToPortal }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Simple UTM (WGS84) to Lat/Lon Rough Converter for India (Zone 43N/44N)
+  // Simple UTM to Lat/Lon Converter for India Zone 43N/44N
   const convertUtmToLatLon = (easting, northing, zoneStr) => {
-    // Basic projection offset calculation for standard Indian UTM zones
     const zoneNum = parseInt(zoneStr.replace(/\D/g, '')) || 43;
     const isNorth = !zoneStr.toLowerCase().includes('s');
-    
     const x = easting - 500000;
     const y = isNorth ? northing : northing - 10000000;
-    
     const k0 = 0.9996;
-    const a = 6378137.0; // WGS84 Semi-major axis
-    const e = 0.081819191; // Eccentricity
+    const a = 6378137.0;
+    const e = 0.081819191;
     const eSquare = e * e;
-
     const lonOrigin = (zoneNum - 1) * 6 - 180 + 3;
-    
     const arc = y / k0;
     const mu = arc / (a * (1 - eSquare / 4 - 3 * eSquare * eSquare / 64));
-    
     const latRad = mu + (3 * e / 2 - 27 * Math.pow(e, 3) / 32) * Math.sin(2 * mu);
     const lonRad = (x / (a * k0)) / Math.cos(latRad);
-    
     const lat = latRad * (180 / Math.PI);
     const lon = lonOrigin + lonRad * (180 / Math.PI);
     return { lat, lon };
   };
 
-  // Helper to construct XML KML format
+  // Helper to construct KML XML format
   const generateKmlStructure = (pointList) => {
     let coordinatesString = '';
     let placemarksXml = '';
@@ -114,7 +108,6 @@ export default function LandingPage({ onGoToPortal }) {
       alert('Please select a CSV or TXT file to upload.');
       return;
     }
-
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = e.target.result;
@@ -143,7 +136,6 @@ export default function LandingPage({ onGoToPortal }) {
         alert('Could not parse valid coordinate rows. Please verify CSV/TXT format.');
         return;
       }
-
       setKmlOutput(generateKmlStructure(parsedPoints));
       setDownloadReady(true);
     };
@@ -172,7 +164,6 @@ export default function LandingPage({ onGoToPortal }) {
       alert('Please enter valid coordinates in format: Name, Latitude, Longitude');
       return;
     }
-
     setKmlOutput(generateKmlStructure(parsedPoints));
     setDownloadReady(true);
   };
@@ -188,10 +179,9 @@ export default function LandingPage({ onGoToPortal }) {
       .filter(row => row.name && !isNaN(row.lat) && !isNaN(row.lon));
 
     if (parsedPoints.length === 0) {
-      alert('Please fill at least one valid row in the sketch coordinate table.');
+      alert('Please ensure at least one valid row with name, latitude, and longitude is entered.');
       return;
     }
-
     setKmlOutput(generateKmlStructure(parsedPoints));
     setDownloadReady(true);
   };
@@ -208,7 +198,6 @@ export default function LandingPage({ onGoToPortal }) {
     document.body.removeChild(link);
   };
 
-  // Handlers for Option C dynamic table rows
   const handleAddSketchRow = () => {
     setSketchCoords([...sketchCoords, { name: `P${sketchCoords.length + 1}`, lat: '', lon: '' }]);
   };
@@ -219,14 +208,74 @@ export default function LandingPage({ onGoToPortal }) {
     setSketchCoords(updated);
   };
 
-  const handleSketchFileUpload = (e) => {
+  // Load Tesseract CDN and Run OCR on Uploaded Sketch Image
+  const handleSketchFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.type.includes('image')) {
-        setSketchPreview(URL.createObjectURL(file));
-      } else {
-        setSketchPreview('PDF Document Attached: ' + file.name);
+    if (!file) return;
+
+    if (file.type.includes('image')) {
+      setSketchPreview(URL.createObjectURL(file));
+    } else {
+      setSketchPreview('PDF Document Attached: ' + file.name);
+    }
+
+    if (!file.type.includes('image')) {
+      setOcrMessage('PDF scanning requires image format. Please enter points manually below.');
+      return;
+    }
+
+    setIsOcrProcessing(true);
+    setOcrMessage('Scanning sketch image for text and coordinates (OCR)...');
+
+    try {
+      // Dynamically load Tesseract.js script from CDN if not already loaded
+      if (!window.Tesseract) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
       }
+
+      // Run OCR recognition
+      const worker = await window.Tesseract.createWorker('eng');
+      const ret = await worker.recognize(file);
+      await worker.terminate();
+
+      const text = ret.data.text;
+      console.log("OCR Extracted Text:", text);
+
+      // Simple regex pattern matcher to find potential coordinate-like number sequences or lines
+      // Looking for numbers with decimals (e.g. 12.9..., 77.5...)
+      const lines = text.split(/\r?\n/);
+      const extractedPoints = [];
+      let pointCounter = 1;
+
+      lines.forEach((line) => {
+        // Find all floating point numbers in the line
+        const numbers = line.match(/\d+\.\d{3,}/g);
+        if (numbers && numbers.length >= 2) {
+          extractedPoints.push({
+            name: `Point_${pointCounter++}`,
+            lat: numbers[0],
+            lon: numbers[1]
+          });
+        }
+      });
+
+      if (extractedPoints.length > 0) {
+        setSketchCoords(extractedPoints);
+        setOcrMessage(`✅ Successfully extracted ${extractedPoints.length} coordinate points! Please review and correct below if needed.`);
+      } else {
+        setOcrMessage('⚠️ Could not automatically detect coordinates from the image. Please verify or type them into the table below.');
+      }
+    } catch (err) {
+      console.error(err);
+      setOcrMessage('⚠️ Error during OCR scan. Please enter points manually in the table below.');
+    } finally {
+      setIsOcrProcessing(false);
     }
   };
 
@@ -408,7 +457,7 @@ export default function LandingPage({ onGoToPortal }) {
                 cursor: 'pointer' 
               }}
             >
-              🖼️ Option C: Image / PDF Sketch
+              🖼️ Option C: Sketch OCR Reader
             </button>
           </div>
 
@@ -488,32 +537,40 @@ export default function LandingPage({ onGoToPortal }) {
             </div>
           )}
 
-          {/* OPTION C VIEW */}
+          {/* OPTION C VIEW (WITH AUTOMATIC OCR SCANNING) */}
           {activeOption === 'optionC' && (
             <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#0f172a' }}>Attach Sketch Reference & Enter Coordinates</h4>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#0f172a' }}>Upload Sketch / Scan Image (Auto OCR)</h4>
               <p style={{ margin: '0 0 15px 0', fontSize: '12px', color: '#64748b' }}>
-                Upload your site sketch map (Image or PDF) to view alongside the coordinate entry table.
+                Upload your site sketch image. Our tool will automatically scan and read the coordinates into the table below for your review and edits.
               </p>
 
               <input 
                 type="file" 
-                accept="image/*, application/pdf" 
+                accept="image/*" 
                 onChange={handleSketchFileUpload}
                 style={{ width: '100%', padding: '8px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', marginBottom: '15px' }}
               />
 
               {sketchPreview && (
                 <div style={{ marginBottom: '15px', textAlign: 'center', backgroundColor: '#e2e8f0', padding: '10px', borderRadius: '6px' }}>
-                  {typeof sketchPreview === 'string' && sketchPreview.startsWith('blob:') ? (
-                    <img src={sketchPreview} alt="Sketch Map" style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'contain' }} />
-                  ) : (
-                    <p style={{ margin: 0, fontSize: '13px', color: '#0369a1', fontWeight: '600' }}>{sketchPreview}</p>
-                  )}
+                  <img src={sketchPreview} alt="Sketch Map" style={{ maxHeight: '220px', maxWidth: '100%', objectFit: 'contain' }} />
                 </div>
               )}
 
-              {/* Table for Points */}
+              {isOcrProcessing && (
+                <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: '6px', fontSize: '13px', fontWeight: '600', textAlign: 'center' }}>
+                  ⏳ {ocrMessage}
+                </div>
+              )}
+
+              {!isOcrProcessing && ocrMessage && (
+                <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', fontSize: '12px', textAlign: 'center', border: '1px solid #cbd5e1' }}>
+                  {ocrMessage}
+                </div>
+              )}
+
+              {/* Table for Extracted / Editable Points */}
               <div style={{ overflowX: 'auto', marginBottom: '15px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                   <thead>
@@ -571,7 +628,7 @@ export default function LandingPage({ onGoToPortal }) {
                 onClick={handleProcessOptionC} 
                 style={{ width: '100%', padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}
               >
-                Generate KML from Sketch Points ⚙️
+                Generate KML from Reviewed Points ⚙️
               </button>
             </div>
           )}
