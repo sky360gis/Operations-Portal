@@ -64,7 +64,7 @@ export default function LandingPage({ onGoToPortal }) {
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
     <name>${polygonName}</name>
-    <description>Generated via SKY360 Solutions Portal</description>
+    <description>Generated via SKY360 Solutions Geospatial Suite</description>
     <Style id="sky360Style">
       <LineStyle>
         <color>ff0000ff</color>
@@ -98,15 +98,16 @@ export default function LandingPage({ onGoToPortal }) {
           <head>
             <title>Generated KML Output - ${polygonName}</title>
             <style>
-              body { font-family: sans-serif; padding: 20px; background: #f8fafc; color: #1e293b; }
-              h2 { color: #004080; }
-              pre { background: #ffffff; padding: 15px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: auto; max-height: 500px; }
-              button { padding: 10px 20px; background: #16a34a; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+              body { font-family: sans-serif; padding: 30px; background: #0f172a; color: #f8fafc; }
+              h2 { color: #38bdf8; }
+              pre { background: #1e293b; color: #38bdf8; padding: 20px; border: 1px solid #334155; border-radius: 8px; overflow: auto; max-height: 450px; font-size: 13px; }
+              button { padding: 12px 24px; background: #22c55e; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+              button:hover { background: #16a34a; }
             </style>
           </head>
           <body>
-            <h2>🗺️ Generated KML File Source</h2>
-            <p>Project Name: <strong>${polygonName}</strong></p>
+            <h2>🗺️ Generated KML Source Code</h2>
+            <p>Project Identifier: <strong>${polygonName}</strong></p>
             <pre>${kmlContent.replace(/</g, '<').replace(/>/g, '>')}</pre>
             <button onclick="window.print()">Print / Save as PDF 📄</button>
           </body>
@@ -118,7 +119,7 @@ export default function LandingPage({ onGoToPortal }) {
 
   const handleProcessOptionA = () => {
     if (!uploadedFile) {
-      alert('Please select a CSV or TXT file.');
+      alert('Please select a valid CSV or TXT coordinate file.');
       return;
     }
     const reader = new FileReader();
@@ -143,7 +144,7 @@ export default function LandingPage({ onGoToPortal }) {
         }
       });
       if (parsedPoints.length === 0) {
-        alert('Could not parse valid coordinate rows.');
+        alert('Could not parse valid coordinate rows from file.');
         return;
       }
       const kml = generateKmlStructure(parsedPoints);
@@ -169,7 +170,7 @@ export default function LandingPage({ onGoToPortal }) {
       }
     });
     if (parsedPoints.length === 0) {
-      alert('Please enter valid coordinates.');
+      alert('Please enter valid coordinate data.');
       return;
     }
     const kml = generateKmlStructure(parsedPoints);
@@ -184,7 +185,7 @@ export default function LandingPage({ onGoToPortal }) {
       .filter(row => row.name && !isNaN(row.lat) && !isNaN(row.lon));
 
     if (parsedPoints.length === 0) {
-      alert('Please enter at least one valid row.');
+      alert('Please enter at least one valid coordinate entry.');
       return;
     }
     const kml = generateKmlStructure(parsedPoints);
@@ -212,12 +213,12 @@ export default function LandingPage({ onGoToPortal }) {
       setSketchPreview(URL.createObjectURL(file));
     } else {
       setSketchPreview('PDF Document Attached: ' + file.name);
-      setOcrMessage('PDF preview attached. Enter coordinates manually below.');
+      setOcrMessage('PDF preview attached. Verify parsed points below.');
       return;
     }
 
     setIsOcrProcessing(true);
-    setOcrMessage('Scanning image using OCR...');
+    setOcrMessage('Scanning map drawing via OCR engine...');
 
     try {
       if (!window.Tesseract) {
@@ -251,211 +252,245 @@ export default function LandingPage({ onGoToPortal }) {
 
       if (extractedPoints.length > 0) {
         setSketchCoords(extractedPoints);
-        setOcrMessage(`✅ Extracted ${extractedPoints.length} points! Review and adjust below.`);
+        setOcrMessage(`✅ Successfully extracted ${extractedPoints.length} coordinate points!`);
       } else {
-        setOcrMessage('⚠️ Could not automatically detect coordinates. Type them below.');
+        setOcrMessage('⚠️ Could not automatically detect coordinates. Please input manually below.');
       }
     } catch (err) {
-      setOcrMessage('⚠️ Error reading image text. Enter manually below.');
+      setOcrMessage('⚠️ Error reading image text. Enter values manually below.');
     } finally {
       setIsOcrProcessing(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', color: '#1e293b', boxSizing: 'border-box' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', color: '#f8fafc', boxSizing: 'border-box' }}>
       
-      {/* Top Header / Navigation Bar */}
+      {/* Top Header */}
       <header style={{ 
-        backgroundColor: '#ffffff', 
-        borderBottom: '1px solid #e2e8f0', 
-        padding: '15px 20px', 
+        backgroundColor: '#1e293b', 
+        borderBottom: '1px solid #334155', 
+        padding: '16px 30px', 
         display: 'flex', 
         flexDirection: isMobile ? 'column' : 'row', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
         gap: '15px', 
-        boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-        textAlign: isMobile ? 'center' : 'left'
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000
       }}>
-        
-        <div style={{ display: 'flex', justifyContent: 'center', width: isMobile ? '100%' : 'auto' }}>
-          <img 
-            src={logo} 
-            alt="SKY360 Logo" 
-            style={{ height: '65px', width: 'auto', objectFit: 'contain' }} 
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src={logo} alt="SKY360 Logo" style={{ height: '55px', width: 'auto', objectFit: 'contain' }} />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', width: isMobile ? '100%' : 'auto' }}>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <a href="#services" style={{ color: '#cbd5e1', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>Solutions</a>
+          <a href="#kml-tool" style={{ color: '#cbd5e1', textDecoration: 'none', fontSize: '13px', fontWeight: '500' }}>KML Tool</a>
           <button 
             onClick={onGoToPortal}
             style={{ 
               padding: '10px 20px', 
-              backgroundColor: '#0066cc', 
+              backgroundColor: '#0284c7', 
               color: '#ffffff', 
               border: 'none', 
               borderRadius: '6px', 
               fontWeight: '600', 
               fontSize: '13px', 
               cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '6px', 
-              boxShadow: '0 2px 6px rgba(0, 102, 204, 0.25)',
-              whiteSpace: 'nowrap'
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
+              transition: 'background 0.2s'
             }}
           >
-            <span>Operations Portal →</span>
+            Operations Portal →
           </button>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section style={{ padding: '60px 20px', textAlign: 'center', backgroundColor: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-block' }}>
-            Precision Surveying & Aerial Mapping
+      <section style={{ padding: '80px 20px', textAlign: 'center', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderBottom: '1px solid #334155' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <span style={{ backgroundColor: 'rgba(2, 132, 199, 0.15)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px', display: 'inline-block', marginBottom: '20px' }}>
+            Enterprise Geospatial Intelligence & Aerial Mapping
           </span>
-          <h2 style={{ fontSize: 'clamp(26px, 5vw, 38px)', color: '#0f172a', margin: '20px 0 15px 0', fontWeight: '800', lineHeight: '1.2' }}>
-            High-Accuracy Drone Photogrammetry & DGPS Geodetic Surveys
-          </h2>
-          <p style={{ fontSize: 'clamp(14px, 2vw, 16px)', color: '#475569', lineHeight: '1.6', marginBottom: '30px' }}>
-            SKY360 Solutions delivers state-of-the-art geospatial surveys, riverbed bathymetry, mining volume estimation, and top-tier GNSS positioning across South India.
+          <h1 style={{ fontSize: 'clamp(32px, 5vw, 50px)', color: '#ffffff', margin: '0 0 20px 0', fontWeight: '800', lineHeight: '1.15' }}>
+            Transforming Physical Infrastructure With Precision Drone Data
+          </h1>
+          <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#94a3b8', lineHeight: '1.6', marginBottom: '35px', maxWidth: '750px', margin: '0 auto 35px auto' }}>
+            SKY360 Solutions delivers millimeter-accurate DGPS geodetic surveys, autonomous drone photogrammetry, and mining volumetric audits across Karnataka and South India.
           </p>
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="#services" style={{ padding: '12px 28px', backgroundColor: '#0f172a', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', display: 'inline-block' }}>
-              Explore Services
+            <a href="#kml-tool" style={{ padding: '14px 28px', backgroundColor: '#22c55e', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px', boxShadow: '0 4px 14px rgba(34, 197, 94, 0.3)' }}>
+              Launch KML Generator 🗺️
+            </a>
+            <a href="#services" style={{ padding: '14px 28px', backgroundColor: '#334155', color: '#fff', borderRadius: '6px', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+              Explore Solutions
             </a>
           </div>
         </div>
       </section>
 
-      {/* KML GENERATOR SECTION (DIRECTLY ON LANDING PAGE BELOW PORTAL BUTTON AREA) */}
-      <section id="kml-generator" style={{ padding: '50px 20px', maxWidth: '850px', margin: '0 auto' }}>
-        <div style={{ backgroundColor: '#ffffff', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 15px rgba(2, 132, 199, 0.08)', border: '1px solid #bae6fd' }}>
+      {/* Services Grid Section */}
+      <section id="services" style={{ padding: '70px 20px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <h2 style={{ fontSize: '28px', color: '#ffffff', marginBottom: '10px', fontWeight: '700' }}>Core Industry Solutions</h2>
+          <p style={{ color: '#94a3b8', fontSize: '14px' }}>Engineered for regulatory compliance, mining leases, and large-scale engineering projects.</p>
+        </div>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '25px' }}>
+          
+          <div style={{ backgroundColor: '#1e293b', padding: '30px', borderRadius: '12px', border: '1px solid #334155', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '32px', marginBottom: '15px' }}>🚁</div>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', color: '#ffffff' }}>UAV Drone Photogrammetry</h3>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#94a3b8', lineHeight: '1.6' }}>
+              High-resolution aerial orthomosaics, 3D textured point clouds, DEM/DSM generation, and centimeter-level contour mapping for infrastructure planning.
+            </p>
+          </div>
+
+          <div style={{ backgroundColor: '#1e293b', padding: '30px', borderRadius: '12px', border: '1px solid #334155', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+            <div style={{ fontSize: '32px', marginBottom: '15px' }}>📡</div>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#ffffff' }}>DGPS & CORS Network Surveys</h3>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#94a3b8', lineHeight: '1.6' }}>
+              Precise ground control point (GCP) establishment, static & kinematic GNSS post-processing, and Survey of India CORS alignment.
+            </p>
+          </div>
+
+          <div style={{ backgroundColor: '#1e293b', padding: '30px', borderRadius: '12px', border: '1px solid #334155', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+            <div style={{ fontSize: '32px', marginBottom: '15px' }}>⛏️</div>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: '#ffffff' }}>Mining & Riverbed Audits</h3>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#94a3b8', lineHeight: '1.6' }}>
+              Authorized minor mineral boundary demarcation, river basin sand block estimation (such as Kagina River basin surveys), and stock pile volumetric calculations.
+            </p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* KML GENERATOR SUITE (EMBEDDED INTERACTIVE TOOL) */}
+      <section id="kml-tool" style={{ padding: '40px 20px 80px 20px', maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ backgroundColor: '#1e293b', padding: '35px', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', border: '1px solid #334155' }}>
           
           <div style={{ textAlign: 'center', marginBottom: '25px' }}>
-            <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase' }}>
-              Geospatial Utility
+            <span style={{ backgroundColor: 'rgba(34, 197, 94, 0.15)', color: '#4ade80', border: '1px solid rgba(74, 222, 128, 0.3)', padding: '4px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase' }}>
+              Interactive Client Utility
             </span>
-            <h3 style={{ margin: '12px 0 6px 0', color: '#004080', fontSize: '24px' }}>KML Coordinate Generator</h3>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
-              Convert boundary points, raw text, or scanned sketches into downloadable Google Earth KML files.
+            <h3 style={{ margin: '12px 0 6px 0', color: '#ffffff', fontSize: '24px' }}>Geospatial KML Coordinate Generator</h3>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#94a3b8' }}>
+              Convert CSV files, raw text arrays, or scanned survey sketches into instant Google Earth KML files with live window previews.
             </p>
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#475569', marginBottom: '6px' }}>Survey / Project Name</label>
-            <input type="text" value={polygonName} onChange={(e) => setPolygonName(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }} />
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#cbd5e1', marginBottom: '6px' }}>Survey Block / Project Name</label>
+            <input type="text" value={polygonName} onChange={(e) => setPolygonName(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #475569', fontSize: '13.5px', backgroundColor: '#0f172a', color: '#fff', boxSizing: 'border-box' }} />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
-            <button onClick={() => { setActiveKmlOption('optionA'); setDownloadReady(false); }} style={{ padding: '10px', backgroundColor: activeKmlOption === 'optionA' ? '#0066cc' : '#f8fafc', color: activeKmlOption === 'optionA' ? '#fff' : '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
+            <button onClick={() => { setActiveKmlOption('optionA'); setDownloadReady(false); }} style={{ padding: '12px', backgroundColor: activeKmlOption === 'optionA' ? '#0284c7' : '#0f172a', color: '#fff', border: '1px solid #475569', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
               📄 CSV / TXT File
             </button>
-            <button onClick={() => { setActiveKmlOption('optionB'); setDownloadReady(false); }} style={{ padding: '10px', backgroundColor: activeKmlOption === 'optionB' ? '#0066cc' : '#f8fafc', color: activeKmlOption === 'optionB' ? '#fff' : '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
+            <button onClick={() => { setActiveKmlOption('optionB'); setDownloadReady(false); }} style={{ padding: '12px', backgroundColor: activeKmlOption === 'optionB' ? '#0284c7' : '#0f172a', color: '#fff', border: '1px solid #475569', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
               ✍️ Raw Text Input
             </button>
-            <button onClick={() => { setActiveKmlOption('optionC'); setDownloadReady(false); }} style={{ padding: '10px', backgroundColor: activeKmlOption === 'optionC' ? '#0066cc' : '#f8fafc', color: activeKmlOption === 'optionC' ? '#fff' : '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
+            <button onClick={() => { setActiveKmlOption('optionC'); setDownloadReady(false); }} style={{ padding: '12px', backgroundColor: activeKmlOption === 'optionC' ? '#0284c7' : '#0f172a', color: '#fff', border: '1px solid #475569', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}>
               🖼️ Sketch OCR Reader
             </button>
           </div>
 
           {activeKmlOption === 'optionA' && (
-            <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Upload CSV / TXT File</h4>
+            <div style={{ backgroundColor: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#f8fafc' }}>Upload Coordinate Dataset (CSV / TXT)</h4>
               <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>Coordinate Format</label>
-                  <select value={coordType} onChange={(e) => setCoordType(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: '#94a3b8' }}>Format Type</label>
+                  <select value={coordType} onChange={(e) => setCoordType(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #475569', fontSize: '13px', backgroundColor: '#1e293b', color: '#fff' }}>
                     <option value="latlon">Lat / Lon (Decimal Degrees)</option>
                     <option value="utm">UTM Coordinates (Easting / Northing)</option>
                   </select>
                 </div>
                 {coordType === 'utm' && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>UTM Zone</label>
-                    <select value={utmZone} onChange={(e) => setUtmZone(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', marginBottom: '4px', color: '#94a3b8' }}>UTM Zone</label>
+                    <select value={utmZone} onChange={(e) => setUtmZone(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #475569', fontSize: '13px', backgroundColor: '#1e293b', color: '#fff' }}>
                       <option value="43N">Zone 43N (Karnataka / South India)</option>
                       <option value="44N">Zone 44N (East Coast India)</option>
                     </select>
                   </div>
                 )}
               </div>
-              <input type="file" accept=".csv, .txt" onChange={(e) => setUploadedFile(e.target.files[0])} style={{ width: '100%', padding: '10px', backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', marginBottom: '15px' }} />
-              <button onClick={handleProcessOptionA} style={{ width: '100%', padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
-                Generate KML & Open Window ⚙️
+              <input type="file" accept=".csv, .txt" onChange={(e) => setUploadedFile(e.target.files[0])} style={{ width: '100%', padding: '10px', backgroundColor: '#1e293b', borderRadius: '6px', border: '1px solid #475569', fontSize: '13px', color: '#fff', marginBottom: '15px' }} />
+              <button onClick={handleProcessOptionA} style={{ width: '100%', padding: '12px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
+                Generate KML & Open Popup Window ⚙️
               </button>
             </div>
           )}
 
           {activeKmlOption === 'optionB' && (
-            <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Type or Paste Coordinates</h4>
-              <textarea rows="6" value={rawTextCoords} onChange={(e) => setRawTextCoords(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontFamily: 'monospace', boxSizing: 'border-box', marginBottom: '15px' }} />
-              <button onClick={handleProcessOptionB} style={{ width: '100%', padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
-                Generate KML & Open Window ⚙️
+            <div style={{ backgroundColor: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#f8fafc' }}>Paste Coordinates (Name, Lat, Lon)</h4>
+              <textarea rows="6" value={rawTextCoords} onChange={(e) => setRawTextCoords(e.target.value)} style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #475569', fontSize: '13px', fontFamily: 'monospace', backgroundColor: '#1e293b', color: '#38bdf8', boxSizing: 'border-box', marginBottom: '15px' }} />
+              <button onClick={handleProcessOptionB} style={{ width: '100%', padding: '12px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
+                Generate KML & Open Popup Window ⚙️
               </button>
             </div>
           )}
 
           {activeKmlOption === 'optionC' && (
-            <div style={{ backgroundColor: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#0f172a' }}>Upload Sketch Image (OCR Reader)</h4>
-              <input type="file" accept="image/*, application/pdf" onChange={handleSketchFileUpload} style={{ width: '100%', padding: '8px', backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', marginBottom: '15px' }} />
+            <div style={{ backgroundColor: '#0f172a', padding: '20px', borderRadius: '8px', border: '1px solid #334155' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#f8fafc' }}>Upload Survey Map / Sketch Image</h4>
+              <input type="file" accept="image/*, application/pdf" onChange={handleSketchFileUpload} style={{ width: '100%', padding: '10px', backgroundColor: '#1e293b', borderRadius: '6px', border: '1px solid #475569', fontSize: '13px', color: '#fff', marginBottom: '15px' }} />
               
               {sketchPreview && (
-                <div style={{ marginBottom: '15px', textAlign: 'center', backgroundColor: '#e2e8f0', padding: '10px', borderRadius: '6px' }}>
+                <div style={{ marginBottom: '15px', textAlign: 'center', backgroundColor: '#1e293b', padding: '10px', borderRadius: '6px' }}>
                   {typeof sketchPreview === 'string' && sketchPreview.startsWith('blob:') ? (
-                    <img src={sketchPreview} alt="Sketch Map" style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'contain' }} />
+                    <img src={sketchPreview} alt="Survey Sketch" style={{ maxHeight: '180px', maxWidth: '100%', objectFit: 'contain' }} />
                   ) : (
-                    <p style={{ margin: 0, fontSize: '13px', color: '#0369a1', fontWeight: '600' }}>{sketchPreview}</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#38bdf8', fontWeight: '600' }}>{sketchPreview}</p>
                   )}
                 </div>
               )}
 
-              {isOcrProcessing && <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: '6px', fontSize: '13px', fontWeight: '600', textAlign: 'center' }}>⏳ {ocrMessage}</div>}
-              {!isOcrProcessing && ocrMessage && <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f1f5f9', color: '#334155', borderRadius: '6px', fontSize: '12px', textAlign: 'center', border: '1px solid #cbd5e1' }}>{ocrMessage}</div>}
+              {isOcrProcessing && <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'rgba(2, 132, 199, 0.2)', color: '#38bdf8', borderRadius: '6px', fontSize: '13px', fontWeight: '600', textAlign: 'center' }}>⏳ {ocrMessage}</div>}
+              {!isOcrProcessing && ocrMessage && <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#1e293b', color: '#cbd5e1', borderRadius: '6px', fontSize: '12px', textAlign: 'center', border: '1px solid #475569' }}>{ocrMessage}</div>}
 
               <div style={{ overflowX: 'auto', marginBottom: '15px' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                   <thead>
-                    <tr style={{ backgroundColor: '#e0f2fe' }}>
-                      <th style={{ padding: '8px', color: '#0369a1' }}>Point Name</th>
-                      <th style={{ padding: '8px', color: '#0369a1' }}>Latitude</th>
-                      <th style={{ padding: '8px', color: '#0369a1' }}>Longitude</th>
+                    <tr style={{ backgroundColor: '#334155' }}>
+                      <th style={{ padding: '8px', color: '#38bdf8' }}>Point Name</th>
+                      <th style={{ padding: '8px', color: '#38bdf8' }}>Latitude</th>
+                      <th style={{ padding: '8px', color: '#38bdf8' }}>Longitude</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sketchCoords.map((row, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #cbd5e1' }}>
-                        <td style={{ padding: '6px' }}><input type="text" value={row.name} onChange={(e) => { const u = [...sketchCoords]; u[idx].name = e.target.value; setSketchCoords(u); }} style={{ width: '90%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }} /></td>
-                        <td style={{ padding: '6px' }}><input type="text" value={row.lat} onChange={(e) => { const u = [...sketchCoords]; u[idx].lat = e.target.value; setSketchCoords(u); }} style={{ width: '90%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }} /></td>
-                        <td style={{ padding: '6px' }}><input type="text" value={row.lon} onChange={(e) => { const u = [...sketchCoords]; u[idx].lon = e.target.value; setSketchCoords(u); }} style={{ width: '90%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }} /></td>
+                      <tr key={idx} style={{ borderBottom: '1px solid #334155' }}>
+                        <td style={{ padding: '6px' }}><input type="text" value={row.name} onChange={(e) => { const u = [...sketchCoords]; u[idx].name = e.target.value; setSketchCoords(u); }} style={{ width: '90%', padding: '6px', borderRadius: '4px', border: '1px solid #475569', background: '#1e293b', color: '#fff' }} /></td>
+                        <td style={{ padding: '6px' }}><input type="text" value={row.lat} onChange={(e) => { const u = [...sketchCoords]; u[idx].lat = e.target.value; setSketchCoords(u); }} style={{ width: '90%', padding: '6px', borderRadius: '4px', border: '1px solid #475569', background: '#1e293b', color: '#fff' }} /></td>
+                        <td style={{ padding: '6px' }}><input type="text" value={row.lon} onChange={(e) => { const u = [...sketchCoords]; u[idx].lon = e.target.value; setSketchCoords(u); }} style={{ width: '90%', padding: '6px', borderRadius: '4px', border: '1px solid #475569', background: '#1e293b', color: '#fff' }} /></td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              <button onClick={() => setSketchCoords([...sketchCoords, { name: `P${sketchCoords.length + 1}`, lat: '', lon: '' }])} style={{ padding: '6px 12px', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', marginBottom: '15px' }}>
+              <button onClick={() => setSketchCoords([...sketchCoords, { name: `P${sketchCoords.length + 1}`, lat: '', lon: '' }])} style={{ padding: '6px 12px', backgroundColor: '#334155', border: '1px solid #475569', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', color: '#fff', marginBottom: '15px' }}>
                 + Add Point Row
               </button>
 
-              <button onClick={handleProcessOptionC} style={{ width: '100%', padding: '12px', backgroundColor: '#0066cc', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
-                Generate KML & Open Window ⚙️
+              <button onClick={handleProcessOptionC} style={{ width: '100%', padding: '12px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
+                Generate KML & Open Popup Window ⚙️
               </button>
             </div>
           )}
 
           {downloadReady && (
-            <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', textAlign: 'center' }}>
-              <p style={{ margin: '0 0 10px 0', color: '#166534', fontSize: '14px', fontWeight: '600' }}>
-                ✅ KML File compiled and opened in a separate window!
+            <div style={{ marginTop: '20px', padding: '15px', backgroundColor: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px', textAlign: 'center' }}>
+              <p style={{ margin: '0 0 10px 0', color: '#4ade80', fontSize: '13.5px', fontWeight: '600' }}>
+                ✅ KML file compiled successfully and opened in a separate preview window!
               </p>
-              <button onClick={handleDownloadKml} style={{ padding: '10px 20px', backgroundColor: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)' }}>
-                Download KML file again 📥
+              <button onClick={handleDownloadKml} style={{ padding: '10px 20px', backgroundColor: '#22c55e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '600', fontSize: '13px', cursor: 'pointer' }}>
+                Download KML File 📥
               </button>
             </div>
           )}
@@ -463,40 +498,9 @@ export default function LandingPage({ onGoToPortal }) {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" style={{ padding: '50px 20px', maxWidth: '1100px', margin: '0 auto' }}>
-        <h3 style={{ textAlign: 'center', fontSize: '22px', color: '#004080', marginBottom: '35px', fontWeight: '700' }}>Our Key Capabilities</h3>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-          <div style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: '28px', marginBottom: '12px' }}>🚁</div>
-            <h4 style={{ margin: '0 0 10px 0', fontSize: '17px', color: '#1e293b' }}>Drone Mapping & Photogrammetry</h4>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
-              High-resolution aerial surveys delivering accurate 3D point clouds, digital elevation models (DEM), contour mapping, and orthomosaics.
-            </p>
-          </div>
-
-          <div style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: '28px', marginBottom: '12px' }}>📡</div>
-            <h4 style={{ margin: '0 0 10px 0', fontSize: '17px', color: '#1e293b' }}>DGPS & CORS Network Surveys</h4>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
-              Millimeter-level geodetic positioning using static & PPK/RTK GNSS workflows aligned with Survey of India CORS benchmarks.
-            </p>
-          </div>
-
-          <div style={{ backgroundColor: '#ffffff', padding: '25px', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: '28px', marginBottom: '12px' }}>⛏️</div>
-            <h4 style={{ margin: '0 0 10px 0', fontSize: '17px', color: '#1e293b' }}>Volumetric Mining & Mineral Surveys</h4>
-            <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: '1.5' }}>
-              Official sand block demarcation, pit volume computation, and minor mineral audit surveys compliant with state mining guidelines.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer style={{ backgroundColor: '#0f172a', color: '#94a3b8', padding: '25px 20px', textAlign: 'center', fontSize: '12px', marginTop: '40px' }}>
-        <p style={{ margin: 0 }}>© {new Date().getFullYear()} SKY360 Solutions. All Rights Reserved. | Bengaluru, Karnataka</p>
+      <footer style={{ backgroundColor: '#0b0f19', color: '#64748b', padding: '30px 20px', textAlign: 'center', fontSize: '12px', borderTop: '1px solid #334155' }}>
+        <p style={{ margin: 0 }}>© {new Date().getFullYear()} SKY360 Solutions. All Rights Reserved. | DGPS Surveys & Drone Photogrammetry | Bengaluru, Karnataka</p>
       </footer>
 
     </div>

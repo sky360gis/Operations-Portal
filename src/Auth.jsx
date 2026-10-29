@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 import logo from './assets/logo.png';
 
 const ALLOWED_EMAILS = [
-  'sandeep.p1981@gmail.com', // Add your authorized emails here
+  'sandeep.p1981@gmail.com','lakshmisagaroct11@gmail.com', // Add your authorized emails here
 ];
 
 export default function Auth() {
